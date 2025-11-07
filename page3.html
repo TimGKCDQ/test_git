@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>🐢 Tortues — Édition Neo‑Brutaliste</title>
+<meta name="description" content="Un site sur les tortues en un seul fichier, look neo‑brutaliste, avec beaucoup de CSS et de JavaScript : parallax, filtre de galerie, quiz progressif et mini‑jeu Nettoyage de plage."/>
+<style>
+/* ============================
+   THEME (neo‑brutalism)
+   ============================ */
+:root{
+  --bg:#f6f7fb;        /* clair par défaut */
+  --ink:#141414;
+  --ink-2:#343434;
+  --muted:#535353;
+  --card:#ffffff;
+  --brand:#00d084;     /* vert vif */
+  --brand-2:#6b5bff;   /* violet vif */
+  --accent:#ffb400;    /* jaune orangé */
+  --error:#ff3366;
+  --ok:#12c28c;
+  --radius:18px;
+  --shadow: 6px 6px 0 #141414;   /* ombre "solide" brutalisme */
+  --border: 3px solid #141414;
+}
+.dark{
+  --bg:#0f1115;
+  --ink:#fefefe;
+  --ink-2:#d8d8d8;
+  --muted:#a9a9a9;
+  --card:#151923;
+  --brand:#21e6a6;
+  --brand-2:#9a8cff;
+  --accent:#ffcf4a;
+  --shadow: 6px 6px 0 #000000;
+  --border: 3px solid #fefefe;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family: ui-sans-serif, system-ui, Inter, Segoe UI, Roboto, Helvetica, Arial;
+  color:var(--ink); background:var(--bg);
+  overflow-x:hidden;
+}
+.container{width:min(1180px,92vw); margin:0 auto}
+section{padding:80px 0}
+h1,h2,h3{margin:0 0 10px; line-height:1.1}
+h1{font-size:clamp(2rem, 3.2vw + 1rem, 4rem)}
+h2{font-size:clamp(1.3rem, 1.6vw + 1rem, 2.2rem)}
+.muted{color:var(--muted)}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:.6rem; padding:1rem 1.1rem; background:var(--brand); border:var(--border); box-shadow:var(--shadow); border-radius:12px; font-weight:900; letter-spacing:.2px; color:#0b0b0b; cursor:pointer}
+.btn.secondary{background:var(--accent)}
+.btn.ghost{background:var(--card); color:var(--ink)}
+.btn:active{transform:translate(2px,2px); box-shadow: 4px 4px 0 #000}
+.badge{display:inline-block; background:var(--accent); border:var(--border); padding:.35rem .6rem; border-radius:999px; font-weight:800}
+.card{background:var(--card); border:var(--border); border-radius:var(--radius); box-shadow:var(--shadow)}
+
+/* NAV LATERALE collante */
+#sideNav{position:fixed; left:16px; top:16px; z-index:999; display:flex; flex-direction:column; gap:8px}
+#sideNav a{background:var(--card); border:var(--border); box-shadow:var(--shadow); border-radius:12px; padding:.55rem .7rem; font-weight:800; color:var(--ink); text-decoration:none}
+#sideNav a.active{background:var(--brand)}
+#theme{position:fixed; right:16px; top:16px; z-index:999}
+
+/* HERO avec parallax bandes */
+.hero{position:relative; isolation:isolate; overflow:hidden;}
+.hero .bands{position:absolute; inset:0; z-index:-1}
+.band{position:absolute; left:-10%; width:120%; height:24%; transform:skewY(-6deg); opacity:.85; filter:contrast(110%)}
+.band:nth-child(1){top:-5%; background:linear-gradient(90deg,var(--brand),var(--brand-2))}
+.band:nth-child(2){top:18%; background:linear-gradient(90deg,#ffd166,var(--accent))}
+.band:nth-child(3){top:41%; background:linear-gradient(90deg,#ff6b6b,#ff3366)}
+.band:nth-child(4){top:64%; background:linear-gradient(90deg,#00d2ff,#3a7bd5)}
+.band:nth-child(5){top:87%; background:linear-gradient(90deg,#a8ff78,#78ffd6)}
+.heroInner{padding:120px 0 80px; display:grid; grid-template-columns:1.1fr .9fr; gap:28px; align-items:center}
+.hero h1 strong{background:linear-gradient(90deg,var(--ink),var(--brand-2)); -webkit-background-clip:text; background-clip:text; color:transparent; text-shadow:none}
+.hero .stamp{display:inline-flex; align-items:center; gap:.5rem; transform:rotate(-3deg); background:var(--card); border:var(--border); box-shadow:var(--shadow); padding:.5rem .7rem; border-radius:12px; font-weight:900}
+.heroArt{aspect-ratio:1/1; border:var(--border); border-radius:50%; box-shadow:var(--shadow); background:radial-gradient(60% 60% at 50% 40%, var(--brand) 0 40%, transparent 41%), conic-gradient(from 0turn, var(--brand-2), var(--accent), var(--brand), var(--brand-2)); position:relative}
+.heroArt:after{content:""; position:absolute; inset:12%; border-radius:50%; border:var(--border); background:repeating-conic-gradient(from .2turn, transparent 0 12deg, rgba(0,0,0,.06) 12deg 13deg)}
+
+/* MARQUEE */
+.marquee{display:flex; overflow:hidden; gap:24px; border-top:var(--border); border-bottom:var(--border); background:var(--card)}
+.marquee .track{display:flex; gap:24px; padding:12px 0; animation:scroll 18s linear infinite; font-weight:900}
+@keyframes scroll{to{transform:translateX(-50%)}}
+
+/* FAITS — blocs brutaux */
+.factGrid{display:grid; grid-template-columns:repeat(12,1fr); gap:18px}
+.fact{grid-column: span 4; padding:16px; transform:rotate(-.8deg)}
+.fact:nth-child(2){transform:rotate(.8deg)}
+.fact:nth-child(3){transform:rotate(-.6deg)}
+.fact h3{font-size:1.1rem}
+
+/* GALERIE filtrable */
+.controls{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px}
+.gallery{display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:12px}
+.tile{position:relative; overflow:hidden; border:var(--border); border-radius:16px; box-shadow:var(--shadow); background:#e8f2ff}
+.tile img{width:100%; height:200px; object-fit:cover; filter:saturate(110%) contrast(105%)}
+.tile .label{position:absolute; left:8px; top:8px; background:var(--accent); border:var(--border); border-radius:999px; padding:.25rem .5rem; font-weight:900}
+.hidden{display:none !important}
+
+/* QUIZ progressif */
+#quizBox{padding:18px}
+.progress{height:12px; background:#0000; border:var(--border); border-radius:999px; overflow:hidden; box-shadow:var(--shadow)}
+.progress span{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--brand),var(--brand-2))}
+.q{margin:12px 0; padding:12px; border:var(--border); border-radius:12px}
+.q .choices{display:grid; gap:8px}
+.q .choices button{justify-content:flex-start}
+
+/* MINI‑JEU: Nettoyage de plage (clicker) */
+#gameWrap{position:relative}
+#beach{width:100%; aspect-ratio:16/9; border:var(--border); border-radius:16px; box-shadow:var(--shadow); background:linear-gradient(#87CEFA 0 45%, #F4E1A3 45% 100%), repeating-linear-gradient(45deg, rgba(0,0,0,.03) 0 6px, rgba(0,0,0,.05) 6px 8px)}
+#hud{position:absolute; left:12px; top:12px; display:flex; gap:10px; flex-wrap:wrap}
+.chip{background:var(--card); border:var(--border); border-radius:12px; padding:.3rem .6rem; font-weight:900}
+
+/* FOOTER simple */
+footer{padding:60px 0; border-top:var(--border)}
+
+/* responsive */
+@media (max-width: 900px){
+  .heroInner{grid-template-columns:1fr}
+  #sideNav{display:none}
+}
+</style>
+</head>
+<body>
+  <!-- NAV LATERALE -->
+  <nav id="sideNav" aria-label="Navigation section">
+    <a href="#top" class="active">Haut</a>
+    <a href="#faits">Faits</a>
+    <a href="#galerie">Galerie</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#jeu">Jeu</a>
+  </nav>
+  <button id="theme" class="btn ghost" aria-label="Changer le thème">Thème</button>
+
+  <!-- HERO -->
+  <header id="top" class="hero">
+    <div class="bands" aria-hidden="true">
+      <div class="band"></div><div class="band"></div><div class="band"></div><div class="band"></div><div class="band"></div>
+    </div>
+    <div class="container heroInner">
+      <div>
+        <span class="stamp">Conservation • Océan • Science</span>
+        <h1>Le club des <strong>Super Tortues</strong> 🐢</h1>
+        <p class="muted" id="typer">…</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px">
+          <a class="btn" href="#faits">Découvrir ⤵</a>
+          <a class="btn secondary" href="#jeu">Jouer maintenant</a>
+        </div>
+      </div>
+      <div class="heroArt" aria-hidden="true"></div>
+    </div>
+    <div class="marquee">
+      <div class="track" aria-hidden="true">
+        <span>🐢 Tortue marine</span><span>🐢 Tortue terrestre</span><span>🐢 Galápagos</span><span>🐢 Éclosion</span><span>🐢 Migration</span>
+        <span>🐢 Tortue marine</span><span>🐢 Tortue terrestre</span><span>🐢 Galápagos</span><span>🐢 Éclosion</span><span>🐢 Migration</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- FAITS -->
+    <section id="faits">
+      <div class="container">
+        <h2>Faits percutants</h2>
+        <p class="muted">Style néo‑brutaliste : blocs épais, contours nets, couleurs franches.</p>
+        <div class="factGrid">
+          <article class="card fact" style="grid-column:span 5">
+            <h3>⏳ Longévité</h3>
+            <p>Nombreuses espèces dépassent les <strong>100 ans</strong>. Le record documenté chez les tortues géantes frôle deux siècles.</p>
+          </article>
+          <article class="card fact" style="grid-column:span 7; background:linear-gradient(90deg,#fff 60%, #ffeec2 60%)">
+            <h3>🧭 Navigation magnétique</h3>
+            <p>Les tortues marines utilisent le <em>champ magnétique</em> pour retrouver leur plage natale après des milliers de kilomètres.</p>
+          </article>
+          <article class="card fact" style="grid-column:span 6; background:linear-gradient(180deg,#fff 70%, #e0ffef 70%)">
+            <h3>🥚 Fidélité au site</h3>
+            <p>Les femelles reviennent pondre sur la même plage — une stratégie de survie millénaire.</p>
+          </article>
+          <article class="card fact" style="grid-column:span 6">
+            <h3>🛡️ Carapace = squelette</h3>
+            <p>La carapace fait partie du squelette (plastron + dossière), <strong>pas</strong> une armure qu’on retire.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALERIE filtrable -->
+    <section id="galerie">
+      <div class="container">
+        <h2>Galerie filtrable</h2>
+        <div class="controls">
+          <button class="btn ghost" data-filter="all">Tout</button>
+          <button class="btn ghost" data-filter="marine">Marine</button>
+          <button class="btn ghost" data-filter="terrestre">Terrestre</button>
+          <button class="btn ghost" data-filter="bébé">Bébé</button>
+        </div>
+        <div class="gallery" id="gallery">
+          <!-- Images en data-URL (SVG) pour rester fichier unique -->
+          <figure class="tile" data-tags="marine">
+            <img alt="Tortue marine" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 400'><defs><linearGradient id='g' x1='0' x2='1'><stop offset='0' stop-color='%2300d084'/><stop offset='1' stop-color='%236b5bff'/></linearGradient></defs><rect width='100%' height='100%' fill='%230f2a44'/><circle cx='400' cy='200' r='150' fill='url(%23g)' opacity='.9'/><text x='50%25' y='54%25' text-anchor='middle' fill='white' font-size='44' font-family='Verdana'>Marine</text></svg>"/>
+            <figcaption class="label">Marine</figcaption>
+          </figure>
+          <figure class="tile" data-tags="terrestre">
+            <img alt="Tortue terrestre" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 400'><rect width='100%' height='100%' fill='%23f1f7e6'/><rect x='140' y='80' width='520' height='240' rx='38' fill='%2300d084' opacity='.9'/><text x='50%25' y='54%25' text-anchor='middle' fill='%230f1115' font-size='44' font-family='Verdana'>Terrestre</text></svg>"/>
+            <figcaption class="label">Terrestre</figcaption>
+          </figure>
+          <figure class="tile" data-tags="bébé marine">
+            <img alt="Bébé tortue" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 400'><rect width='100%' height='100%' fill='%23ffeec2'/><circle cx='260' cy='200' r='100' fill='%2300d084'/><circle cx='520' cy='200' r='100' fill='%236b5bff'/><text x='50%25' y='55%25' text-anchor='middle' fill='%230f1115' font-size='42' font-family='Verdana'>B%26eacute%3Bb%26eacute;</text></svg>"/>
+            <figcaption class="label">Bébé</figcaption>
+          </figure>
+          <figure class="tile" data-tags="marine">
+            <img alt="Nage profonde" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 400'><rect width='100%' height='100%' fill='%230d243a'/><polygon points='0,320 800,320 760,260 40,260' fill='%2300d084' opacity='.7'/><text x='50%25' y='55%25' text-anchor='middle' fill='%23ffffff' font-size='40' font-family='Verdana'>Profonde</text></svg>"/>
+            <figcaption class="label">Profonde</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="quiz">
+      <div class="container card" id="quizBox">
+        <h2>Quiz rapide</h2>
+        <div class="progress" aria-label="Progression du quiz"><span id="bar"></span></div>
+        <div id="qWrap"></div>
+        <div style="display:flex; gap:10px; align-items:center; margin-top:10px">
+          <div class="badge">Score : <span id="score">0</span>/<span id="total">0</span></div>
+          <button class="btn" id="restart">Rejouer</button>
+          <button class="btn secondary" id="shuffle">Mélanger</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MINI‑JEU Nettoyage de plage -->
+    <section id="jeu">
+      <div class="container">
+        <h2>Mini‑jeu : Nettoyage de plage <span class="badge">Clique le déchet</span></h2>
+        <p class="muted">Clique le plus de déchets possible en 30 secondes. Évite les bébés tortues : ne clique pas dessus !</p>
+        <div id="gameWrap" class="card">
+          <canvas id="beach" width="960" height="540" aria-label="Jeu de nettoyage"></canvas>
+          <div id="hud">
+            <span class="chip">⏱️ Temps : <span id="time">30</span>s</span>
+            <span class="chip">🧹 Déchets : <span id="trash">0</span></span>
+            <span class="chip">🚼 Bébés épargnés : <span id="babies">0</span></span>
+            <button class="btn" id="start">Démarrer</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p class="muted">Fichier unique • HTML + CSS + JavaScript • Style neo‑brutaliste. Modifie, duplique, améliore ✨</p>
+    </div>
+  </footer>
+
+<script>
+/* =============== UTIL =============== */
+const $ = (q, el=document)=> el.querySelector(q);
+const $$ = (q, el=document)=> Array.from(el.querySelectorAll(q));
+const clamp = (v,a,b)=> Math.min(b, Math.max(a,v));
+
+/* =============== THEME =============== */
+const themeBtn = $('#theme');
+if(localStorage.getItem('turtle-theme2')==='dark') document.body.classList.add('dark');
+themeBtn.addEventListener('click',()=>{
+  document.body.classList.toggle('dark');
+  localStorage.setItem('turtle-theme2', document.body.classList.contains('dark')?'dark':'light');
+});
+
+/* =============== HERO TYPEWRITER =============== */
+const messages = [
+  'Navigation magnétique incroyable.',
+  'Jusqu\'à 100+ ans de vie.',
+  'Des milliers de km parcourus.',
+  'Protège les plages de ponte.',
+];
+let ti=0, ci=0; const typerEl = $('#typer');
+function typeLoop(){
+  const m = messages[ti];
+  typerEl.textContent = m.slice(0, ++ci) + (ci%2?'▌':'');
+  if(ci<=m.length){ setTimeout(typeLoop, 60); }
+  else { setTimeout(()=>{ ci=0; ti=(ti+1)%messages.length; typeLoop(); }, 1200); }
+}
+typeLoop();
+
+/* =============== NAV ACTIVE ON SCROLL =============== */
+const sections = ['top','faits','galerie','quiz','jeu'].map(id=>document.getElementById(id));
+const navLinks = $$('#sideNav a');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      navLinks.forEach(a=>a.classList.toggle('active', a.getAttribute('href').slice(1)===e.target.id));
+    }
+  });
+},{threshold:0.5});
+sections.forEach(s=>obs.observe(s));
+
+/* =============== GALERIE FILTER =============== */
+const tiles = $$('#gallery .tile');
+$$('#galerie .controls .btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const f = btn.dataset.filter;
+    tiles.forEach(t=>{
+      t.classList.toggle('hidden', !(f==='all' || t.dataset.tags.includes(f)));
+    });
+  });
+});
+
+/* =============== QUIZ =============== */
+const Q = [
+  {q:"Combien de temps peuvent vivre certaines tortues ?", c:["20 ans","60 ans","100+ ans"], a:2},
+  {q:"Comment s'orientent les tortues marines ?", c:["Étoiles","Magnétisme terrestre","Courants"], a:1},
+  {q:"Où pondent les femelles ?", c:["Plage natale","N'importe où","Lagune aléatoire"], a:0},
+  {q:"La carapace est…", c:["Une coquille amovible","Du cartilage","Une partie du squelette"], a:2},
+  {q:"Geste utile ?", c:["Réduire plastique","Allumer les phares","Conduire plus vite"], a:0},
+];
+const qWrap = $('#qWrap'); const scoreEl = $('#score'); const totalEl = $('#total'); totalEl.textContent = Q.length; const bar = $('#bar');
+let score=0, answered=0;
+function renderQuiz(){
+  qWrap.innerHTML=''; score=0; answered=0; scoreEl.textContent='0'; bar.style.width='0%';
+  Q.forEach((r,idx)=>{
+    const div=document.createElement('div'); div.className='q card';
+    div.innerHTML = `<div><strong>Q${idx+1}. </strong>${r.q}</div>`;
+    const choices=document.createElement('div'); choices.className='choices';
+    r.c.forEach((text,i)=>{
+      const b=document.createElement('button'); b.className='btn ghost'; b.textContent=text;
+      b.addEventListener('click',()=>{
+        if(b.dataset.locked) return;
+        answered++; bar.style.width = Math.round(answered/Q.length*100)+'%';
+        $$('button', choices).forEach(bb=>bb.dataset.locked=true);
+        if(i===r.a){ b.style.background='var(--ok)'; b.style.color='#0b0b0b'; score++; scoreEl.textContent=score; blast(b); }
+        else { b.style.background='var(--error)'; b.style.color='#fff'; }
+      });
+      choices.appendChild(b);
+    });
+    div.appendChild(choices); qWrap.appendChild(div);
+  });
+}
+$('#restart').addEventListener('click', renderQuiz);
+$('#shuffle').addEventListener('click',()=>{ Q.sort(()=>Math.random()-.5); renderQuiz(); });
+renderQuiz();
+
+function blast(target){
+  const r=target.getBoundingClientRect();
+  for(let i=0;i<18;i++){
+    const s=document.createElement('span');
+    s.style.position='fixed'; s.style.left=(r.left+r.width/2)+'px'; s.style.top=(r.top)+'px'; s.style.width=s.style.height= (5+Math.random()*7)+'px';
+    s.style.background = i%2? 'var(--brand)':'var(--brand-2)'; s.style.border='var(--border)'; s.style.zIndex=9999; s.style.transform='translate(-50%,-50%)';
+    s.style.pointerEvents='none'; s.style.borderRadius='4px'; document.body.appendChild(s);
+    const ang=Math.random()*Math.PI*2; const sp=2+Math.random()*4; const g=0.18; let vx=Math.cos(ang)*sp, vy=Math.sin(ang)*sp;
+    const t0=performance.now();
+    function anim(now){ const dt=(now-t0)/16; vy+=g; s.style.left=(r.left+r.width/2+vx*dt)+'px'; s.style.top=(r.top+vy*dt)+'px'; s.style.opacity = 1-(now-t0)/1000; if(now-t0<1000) requestAnimationFrame(anim); else s.remove(); }
+    requestAnimationFrame(anim);
+  }
+}
+
+/* =============== MINI‑JEU: NETTOYAGE =============== */
+const cvs = $('#beach'); const ctx = cvs.getContext('2d');
+const startBtn = $('#start'); const timeOut = $('#time'); const trashOut = $('#trash'); const babiesOut = $('#babies');
+let game=null;
+function start(){
+  game = { t:30, score:0, safe:0, last:performance.now(), objs:[], running:true };
+  trashOut.textContent='0'; babiesOut.textContent='0'; timeOut.textContent='30';
+  spawn(18);
+  requestAnimationFrame(loop);
+}
+startBtn.addEventListener('click', start);
+
+function spawn(n){
+  for(let i=0;i<n;i++) game.objs.push(makeObj());
+}
+function makeObj(){
+  const isTrash = Math.random()<0.75; // 75% déchets, 25% bébés
+  return {
+    x: Math.random()* (cvs.width-80) + 40,
+    y: Math.random()* (cvs.height-200) + 160,  // sur le sable
+    r: 24 + Math.random()*10,
+    vx: (Math.random()-.5)*0.4,
+    vy: (Math.random()-.5)*0.4,
+    type: isTrash? ['bottle','bag','ring'][Math.floor(Math.random()*3)] : 'baby',
+    alive:true
+  };
+}
+
+cvs.addEventListener('click', (e)=>{
+  if(!game||!game.running) return; const rect=cvs.getBoundingClientRect(); const x=e.clientX-rect.left, y=e.clientY-rect.top;
+  for(const o of game.objs){ if(!o.alive) continue; const dx=o.x-x, dy=o.y-y; if(dx*dx+dy*dy < (o.r*o.r)){ o.alive=false; if(o.type==='baby'){ game.safe=Math.max(0, game.safe-1); flash('#ff3366'); } else { game.score++; pop(); } break; }}
+  trashOut.textContent=game.score; babiesOut.textContent=game.safe;
+});
+
+function loop(now){
+  if(!game||!game.running) return; const dt = (now-game.last)/16; game.last=now;
+  game.t -= (now%1000<16?0:0.016); // approx secondes
+  if(game.t<=0){ game.running=false; timeOut.textContent='0'; banner(`Terminé ! Déchets :${game.score}`); return; }
+  timeOut.textContent = Math.ceil(game.t);
+  // update
+  for(const o of game.objs){ if(!o.alive) continue; o.x += o.vx*dt; o.y += o.vy*dt; if(o.x<30||o.x>cvs.width-30) o.vx*=-1; if(o.y<160||o.y>cvs.height-30) o.vy*=-1; }
+  // draw
+  ctx.clearRect(0,0,cvs.width,cvs.height);
+  // mer
+  ctx.fillStyle = '#6ec6ff'; ctx.fillRect(0,0,cvs.width, cvs.height*0.45);
+  // vague
+  ctx.fillStyle = '#5ab1ea'; for(let i=0;i<12;i++){ ctx.globalAlpha = .05 + .03*Math.sin((now*0.001)+(i*0.6)); ctx.fillRect(0, i*16, cvs.width, 8); } ctx.globalAlpha=1;
+  // sable
+  ctx.fillStyle = '#f4e1a3'; ctx.fillRect(0,cvs.height*0.45, cvs.width, cvs.height);
+  // objets
+  for(const o of game.objs){ if(!o.alive) continue; drawObj(o); }
+  requestAnimationFrame(loop);
+}
+
+function drawObj(o){
+  ctx.save(); ctx.translate(o.x,o.y); ctx.lineWidth=3; ctx.strokeStyle = '#141414';
+  if(document.body.classList.contains('dark')) ctx.strokeStyle = '#fefefe';
+  if(o.type==='baby'){
+    // bébé tortue simplifiée
+    ctx.fillStyle = '#00d084';
+    ctx.beginPath(); ctx.ellipse(0,0,18,12,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-20,0,6,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-22,-2,2,0,Math.PI*2); ctx.fillStyle='#141414'; if(document.body.classList.contains('dark')) ctx.fillStyle='#0f1115'; ctx.fill();
+  } else if(o.type==='bottle'){
+    ctx.fillStyle='rgba(255,255,255,.7)'; ctx.beginPath(); ctx.moveTo(-6,-18); ctx.lineTo(6,-18); ctx.lineTo(9,8); ctx.quadraticCurveTo(0,16,-9,8); ctx.closePath(); ctx.fill(); ctx.stroke();
+  } else if(o.type==='bag'){
+    ctx.fillStyle='rgba(255,255,255,.7)'; ctx.beginPath(); roundRect(ctx,-14,-18,28,36,6); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.arc(-8,-20,4,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.arc(8,-20,4,0,Math.PI*2); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.arc(0,0, 12, 0, Math.PI*2); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function roundRect(ctx,x,y,w,h,r){ const rr=Math.min(r, w/2, h/2); ctx.beginPath(); ctx.moveTo(x+rr,y); ctx.arcTo(x+w,y,x+w,y+h,rr); ctx.arcTo(x+w,y+h,x,y+h,rr); ctx.arcTo(x,y+h,x,y,rr); ctx.arcTo(x,y,x+w,y,rr); ctx.closePath(); }
+
+function banner(text){
+  const b=document.createElement('div'); b.textContent=text; b.style.position='absolute'; b.style.left='50%'; b.style.top='50%'; b.style.transform='translate(-50%,-50%)'; b.style.background='var(--card)'; b.style.border='var(--border)'; b.style.boxShadow='var(--shadow)'; b.style.padding='1rem 1.2rem'; b.style.fontWeight='900'; b.style.borderRadius='12px'; b.style.zIndex=10; $('#gameWrap').appendChild(b); setTimeout(()=>b.remove(),2500);
+}
+function pop(){
+  const s=document.createElement('span'); s.textContent='✨'; s.style.position='fixed'; s.style.left='10px'; s.style.top='10px'; s.style.fontSize='24px'; s.style.pointerEvents='none'; document.body.appendChild(s); setTimeout(()=>s.remove(),500);
+}
+function flash(col){ const w=$('#gameWrap'); const old=w.style.boxShadow; w.style.boxShadow='0 0 0 4px '+col+', '+old; setTimeout(()=>w.style.boxShadow=old,200); }
+
+</script>
+</body>
+</html>
