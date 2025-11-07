@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Un site ultra‑stylé en un seul fichier sur le monde fascinant des tortues : infos, quiz, animations et mini‑jeu !" />
+  <title>🐢 Tortues — Monde Fascinant</title>
+  <style>
+    /* ==========================
+       THEME & VARIABLES
+       ========================== */
+    :root{
+      --bg: #0b1420;
+      --bg-alt:#0e1b2a;
+      --text:#e8f0ff;
+      --muted:#9db7d5;
+      --primary:#16c79a;
+      --primary-2:#20d5a8;
+      --accent:#69a7ff;
+      --warn:#ffd166;
+      --danger:#ef476f;
+      --card:#101f33;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+      --radius-sm: 12px;
+      --glass: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+    }
+    .light{
+      --bg: #f7fbff;
+      --bg-alt:#eaf2fb;
+      --text:#0c1a2b;
+      --muted:#2f4b6b;
+      --primary:#2fbd7d;
+      --primary-2:#3fd290;
+      --accent:#2268ff;
+      --warn:#c49100;
+      --danger:#c7224a;
+      --card:#ffffff;
+      --shadow: 0 10px 30px rgba(0,0,0,.08);
+      --glass: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.7));
+    }
+
+    /* ==========================
+       BASE STYLES
+       ========================== */
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--bg);
+      color: var(--text);
+      line-height:1.6;
+      overflow-x:hidden;
+    }
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .container{width:min(1100px, 92vw); margin:0 auto;}
+    .grid{display:grid; gap:24px;}
+    .btn{display:inline-flex; align-items:center; gap:.5rem; background:var(--primary); color:#08131f; border:0; border-radius:999px; padding:.9rem 1.2rem; font-weight:700; box-shadow:var(--shadow); cursor:pointer}
+    .btn.secondary{background:transparent; color:var(--text); outline:2px solid rgba(255,255,255,.18)}
+    .btn:hover{transform:translateY(-1px); filter:brightness(1.05)}
+    .badge{display:inline-block; padding:.35rem .7rem; border-radius:999px; font-size:.8rem; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15)}
+    .card{background:var(--glass); backdrop-filter: blur(8px); border:1px solid rgba(255,255,255,.12); border-radius:var(--radius); box-shadow: var(--shadow);}
+    .section{padding:80px 0}
+    h1,h2,h3{line-height:1.15; margin:0 0 12px}
+    h1{font-size:clamp(2.1rem, 2.6vw + 1.4rem, 3.4rem)}
+    h2{font-size:clamp(1.6rem, 1.3vw + 1.2rem, 2.1rem)}
+    h3{font-size:1.2rem; opacity:.95}
+    p{margin:0 0 10px}
+
+    /* ==========================
+       HEADER / HERO
+       ========================== */
+    header{
+      position:relative; isolation:isolate; overflow:hidden;
+      background: radial-gradient(1200px 400px at 10% 10%, rgba(22,199,154,.25), transparent 60%),
+                  radial-gradient(800px 360px at 90% 0%, rgba(105,167,255,.25), transparent 60%),
+                  linear-gradient(180deg, var(--bg-alt), var(--bg));
+    }
+    #bubbles{position:absolute; inset:0; z-index:0}
+    .hero{position:relative; z-index:1; padding:120px 0 80px}
+    .hero .content{display:grid; grid-template-columns: 1.1fr .9fr; gap:32px; align-items:center}
+    .hero h1 .accent{background: linear-gradient(90deg, var(--primary), var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+    .hero .actions{display:flex; gap:14px; flex-wrap:wrap; margin-top:12px}
+
+    .turtle-hero{
+      aspect-ratio: 1/1; width:min(380px, 70vw); margin:0 auto; position:relative;
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,.45));
+      animation: floaty 6s ease-in-out infinite;
+    }
+    @keyframes floaty{0%{transform:translateY(0)}50%{transform:translateY(-12px)}100%{transform:translateY(0)}}
+
+    .wave{position:absolute; left:0; right:0; bottom:-1px; z-index:1}
+
+    /* ==========================
+       NAVBAR
+       ========================== */
+    nav{
+      position:sticky; top:0; z-index:999; backdrop-filter: blur(10px);
+      background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,0));
+      border-bottom:1px solid rgba(255,255,255,.1);
+    }
+    nav .bar{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 0}
+    nav .links{display:flex; flex-wrap:wrap; gap:10px}
+    nav .links a{padding:.55rem .9rem; border-radius:999px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12)}
+    nav .right{display:flex; align-items:center; gap:10px}
+
+    /* ==========================
+       FACTS (ACCORDION)
+       ========================== */
+    .accordion{display:grid; gap:12px}
+    details.card{padding:14px 18px}
+    details summary{cursor:pointer; list-style:none; display:flex; align-items:center; gap:10px; font-weight:700}
+    details summary::-webkit-details-marker{display:none}
+    details[open]{outline:2px solid rgba(255,255,255,.18)}
+
+    /* ==========================
+       GALLERY
+       ========================== */
+    .gallery{display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:14px}
+    .gallery figure{position:relative; overflow:hidden; border-radius:var(--radius-sm); margin:0; aspect-ratio: 4/3; background:#0b2034}
+    .gallery img{width:100%; height:100%; object-fit:cover; transform:scale(1.05); transition: transform .5s ease}
+    .gallery figure:hover img{transform:scale(1.13)}
+    .gallery figcaption{position:absolute; inset:auto 10px 10px 10px; background:rgba(0,0,0,.5); padding:6px 9px; border-radius:10px; font-size:.9rem}
+
+    /* ==========================
+       QUIZ
+       ========================== */
+    #quiz .q{margin:14px 0; padding:14px; border-radius:var(--radius-sm); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12)}
+    #quiz .choices{display:grid; gap:8px; margin-top:8px}
+    #quiz .choices button{justify-content:flex-start; width:100%}
+    #quiz .score{font-weight:800; font-size:1.2rem}
+
+    /* ==========================
+       MINI-GAME: Nager & éviter le plastique
+       ========================== */
+    #gameWrap{position:relative}
+    #gameCanvas{width:100%; aspect-ratio: 16/9; border-radius:var(--radius); background: radial-gradient(80% 120% at 50% 0%, rgba(22,199,154,.15), rgba(105,167,255,.06)), linear-gradient(180deg, #07203a, #051426 70%)}
+    #hud{position:absolute; left:14px; top:10px; display:flex; gap:12px; align-items:center}
+    #hud .chip{background:rgba(255,255,255,.12); padding:.4rem .6rem; border-radius:999px; border:1px solid rgba(255,255,255,.2)}
+
+    /* ==========================
+       FOOTER
+       ========================== */
+    footer{padding:60px 0; border-top:1px dashed rgba(255,255,255,.18); background:linear-gradient(180deg, var(--bg), #050b14)}
+    .credits{display:flex; gap:10px; flex-wrap:wrap}
+
+    /* Responsive tweaks */
+    @media (max-width: 860px){
+      .hero .content{grid-template-columns:1fr}
+      nav .links{display:none}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <canvas id="bubbles" aria-hidden="true"></canvas>
+    <div class="hero container">
+      <div class="content">
+        <div>
+          <span class="badge">Océanographie • Conservation</span>
+          <h1>Bienvenue dans le <span class="accent">monde des tortues</span> 🐢</h1>
+          <p>Explore un univers interactif : faits étonnants, galerie immersive, quiz éclair et mini‑jeu d'évitement du plastique. Le tout en une seule page HTML, pleine de CSS et de JavaScript.</p>
+          <div class="actions">
+            <a href="#faits" class="btn">Découvrir les faits</a>
+            <a href="#jeu" class="btn secondary">Jouer maintenant</a>
+            <button id="themeToggle" class="btn" aria-label="Basculer thème">Thème</button>
+          </div>
+        </div>
+        <div>
+          <!-- SVG tortue stylisée -->
+          <svg class="turtle-hero" viewBox="0 0 300 300" role="img" aria-label="Illustration d'une tortue">
+            <defs>
+              <linearGradient id="shellGrad" x1="0" x2="1">
+                <stop offset="0%" stop-color="#16c79a"/>
+                <stop offset="100%" stop-color="#69a7ff"/>
+              </linearGradient>
+            </defs>
+            <g filter="url(#shadow)">
+              <ellipse cx="150" cy="150" rx="110" ry="85" fill="url(#shellGrad)" stroke="rgba(0,0,0,.25)" stroke-width="4"/>
+              <g fill="rgba(0,0,0,.15)">
+                <path d="M150 70L110 110L150 150L190 110Z"/>
+                <path d="M150 150L110 190L150 230L190 190Z"/>
+                <path d="M110 150L70 120L70 180Z"/>
+                <path d="M190 150L230 120L230 180Z"/>
+              </g>
+              <ellipse cx="65" cy="150" rx="35" ry="24" fill="#20d5a8"/>
+              <circle cx="52" cy="145" r="6" fill="#08131f"/>
+              <ellipse cx="235" cy="115" rx="25" ry="18" fill="#20d5a8"/>
+              <ellipse cx="235" cy="185" rx="25" ry="18" fill="#20d5a8"/>
+              <ellipse cx="150" cy="245" rx="30" ry="22" fill="#20d5a8"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <!-- Vague décorative -->
+    <svg class="wave" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+      <path fill="var(--bg)" d="M0,64L48,58.7C96,53,192,43,288,58.7C384,75,480,117,576,112C672,107,768,53,864,48C960,43,1056,85,1152,112C1248,139,1344,149,1392,154.7L1440,160L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"/>
+    </svg>
+  </header>
+
+  <nav>
+    <div class="bar container">
+      <div><strong>🐢 Tortues</strong></div>
+      <div class="links">
+        <a href="#faits">Faits</a>
+        <a href="#galerie">Galerie</a>
+        <a href="#quiz">Quiz</a>
+        <a href="#jeu">Jeu</a>
+        <a href="#ressources">Ressources</a>
+      </div>
+      <div class="right">
+        <span class="badge" id="scrollState">Top</span>
+        <button class="btn" id="toTop">Haut ↑</button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- FAITS -->
+    <section id="faits" class="section">
+      <div class="container">
+        <h2>Faits étonnants sur les tortues</h2>
+        <p class="muted">Clique pour ouvrir :</p>
+        <div class="accordion">
+          <details class="card" open>
+            <summary>⏳ Longévité remarquable</summary>
+            <p>Plusieurs espèces dépassent les <strong>100 ans</strong>. Les tortues des Galápagos figurent parmi les doyennes du règne animal.</p>
+          </details>
+          <details class="card">
+            <summary>🧭 Sens de l'orientation</summary>
+            <p>Les tortues marines s'orientent grâce au <em>champ magnétique terrestre</em>, mémorisant une signature magnétique de leur plage de naissance.</p>
+          </details>
+          <details class="card">
+            <summary>🥚 Retour sur la plage natale</summary>
+            <p>Les femelles retournent pondre sur la <strong>même plage</strong> où elles ont éclos, parfois après des milliers de kilomètres.</p>
+          </details>
+          <details class="card">
+            <summary>🛡️ Carapace vivante</summary>
+            <p>La carapace est <em>ossifiée</em> et vascularisée : elle fait partie du squelette, pas une armure amovible.</p>
+          </details>
+          <details class="card">
+            <summary>🌊 Alliées de l'écosystème</summary>
+            <p>Herbivores ou carnivores, elles régulent les populations et entretiennent des habitats comme les <strong>herbiers marins</strong>.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALERIE (images libres intégrées en data-URL fictives via gradient) -->
+    <section id="galerie" class="section" style="background:linear-gradient(180deg, var(--bg), var(--bg-alt))">
+      <div class="container">
+        <h2>Galerie immersive</h2>
+        <p>Survole les images — vague de mouvement 🌊</p>
+        <div class="gallery">
+          <!-- Placeholders colorés (aucune ressource externe) -->
+          <figure class="card"><img alt="Tortue nageant" src="data:image/svg+xml;utf8,\
+            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'>\
+            <defs><linearGradient id='g' x1='0' x2='1'><stop offset='0' stop-color='%2316c79a'/><stop offset='1' stop-color='%2369a7ff'/></linearGradient></defs>\
+            <rect width='100%' height='100%' fill='%23071a2c'/>\
+            <circle cx='400' cy='300' r='220' fill='url(%23g)' opacity='.85'/>\
+            <text x='50%' y='52%' text-anchor='middle' fill='white' font-size='46' font-family='Verdana'>Tortue marine</text>\
+            </svg>"/><figcaption>Marine</figcaption></figure>
+          <figure class="card"><img alt="Tortue des Galápagos" src="data:image/svg+xml;utf8,\
+            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'>\
+            <rect width='100%' height='100%' fill='%2307182a'/>\
+            <rect x='120' y='120' width='560' height='360' rx='46' fill='%2320d5a8' opacity='.9'/>\
+            <text x='50%' y='52%' text-anchor='middle' fill='%23051326' font-size='44' font-family='Verdana'>Gal\u00E1pagos</text></svg>"/><figcaption>Galápagos</figcaption></figure>
+          <figure class="card"><img alt="Bébé tortue" src="data:image/svg+xml;utf8,\
+            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'>\
+            <rect width='100%' height='100%' fill='%2305172a'/>\
+            <circle cx='260' cy='300' r='120' fill='%2316c79a'/>\
+            <circle cx='520' cy='300' r='120' fill='%2369a7ff'/>\
+            <text x='50%' y='54%' text-anchor='middle' fill='white' font-size='42' font-family='Verdana'>Hatchling</text></svg>"/><figcaption>Éclosion</figcaption></figure>
+          <figure class="card"><img alt="Tortue terrestre" src="data:image/svg+xml;utf8,\
+            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'>\
+            <rect width='100%' height='100%' fill='%230b2034'/>\
+            <polygon points='60,520 740,520 640,300 160,300' fill='%2326b98f'/>\
+            <text x='50%' y='52%' text-anchor='middle' fill='white' font-size='44' font-family='Verdana'>Terrestre</text></svg>"/><figcaption>Terrestre</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="quiz" class="section">
+      <div class="container">
+        <h2>Quiz éclair</h2>
+        <div class="card" style="padding:18px">
+          <div id="quizWrap"></div>
+          <div class="grid" style="grid-template-columns: 1fr auto; align-items:center; margin-top:10px">
+            <div class="score">Score : <span id="score">0</span>/<span id="total">0</span></div>
+            <div style="display:flex; gap:8px">
+              <button class="btn" id="retry">Rejouer</button>
+              <button class="btn secondary" id="shuffle">Mélanger</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MINI-JEU -->
+    <section id="jeu" class="section" style="background:linear-gradient(180deg, var(--bg-alt), var(--bg))">
+      <div class="container">
+        <h2>Nage, petite tortue ! <span class="badge">Évite le plastique</span></h2>
+        <p>Utilise <strong>←</strong> et <strong>→</strong> pour te déplacer. Survies le plus longtemps possible.</p>
+        <div id="gameWrap" class="card">
+          <canvas id="gameCanvas" width="960" height="540" aria-label="Jeu d'évitement"></canvas>
+          <div id="hud">
+            <span class="chip">⏱️ Temps : <span id="time">0.0</span>s</span>
+            <span class="chip">⭐ Score : <span id="gscore">0</span></span>
+            <button class="btn" id="startGame">Démarrer</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESSOURCES / CTA -->
+    <section id="ressources" class="section">
+      <div class="container card" style="padding:22px">
+        <h2>Ressources & gestes utiles</h2>
+        <ul>
+          <li>Réduire le plastique à usage unique et trier correctement.</li>
+          <li>Participer à des nettoyages de plages et soutenir des ONG de conservation.</li>
+          <li>Partager l'information et respecter les sites de ponte.</li>
+        </ul>
+        <p class="muted">Ce site ne charge aucune ressource externe : tout tient dans <strong>un seul fichier</strong>.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="credits">
+        <span class="badge">Fichier unique</span>
+        <span class="badge">HTML + CSS + JavaScript</span>
+        <span class="badge">Accessibilité : ARIA / contrastes</span>
+      </div>
+      <p style="opacity:.8; margin-top:12px">Fais avec ❤️ pour les tortues. Tu peux modifier ce fichier et le partager librement.</p>
+    </div>
+  </footer>
+
+  <script>
+  /* =====================================================
+     UTILITAIRES JS
+     ===================================================== */
+  const $ = (q, el=document) => el.querySelector(q);
+  const $$ = (q, el=document) => Array.from(el.querySelectorAll(q));
+  const clamp = (v, a, b)=> Math.min(b, Math.max(a, v));
+
+  /* =====================================================
+     THEME TOGGLE
+     ===================================================== */
+  const root = document.documentElement;
+  const themeToggle = $('#themeToggle');
+  const storedTheme = localStorage.getItem('turtle-theme');
+  if(storedTheme === 'light') document.body.classList.add('light');
+  themeToggle.addEventListener('click', ()=>{
+    document.body.classList.toggle('light');
+    localStorage.setItem('turtle-theme', document.body.classList.contains('light')?'light':'dark');
+  });
+
+  /* =====================================================
+     SCROLL HELPERS
+     ===================================================== */
+  $('#toTop').addEventListener('click', ()=>window.scrollTo({top:0, behavior:'smooth'}));
+  const scrollState = $('#scrollState');
+  document.addEventListener('scroll', ()=>{
+    const y = window.scrollY; scrollState.textContent = y < 120 ? 'Top' : (y < 800 ? 'Milieu' : 'Bas');
+  });
+
+  /* =====================================================
+     BUBBLES CANVAS BACKGROUND
+     ===================================================== */
+  const bubbles = $('#bubbles');
+  const ctxB = bubbles.getContext('2d');
+  let bw = 0, bh = 0, particles = [];
+  function resizeBubbles(){ bw = bubbles.width = bubbles.offsetWidth; bh = bubbles.height = bubbles.offsetHeight; }
+  window.addEventListener('resize', resizeBubbles); resizeBubbles();
+  function spawnBubble(){
+    const r = Math.random()*6+2;
+    return {x: Math.random()*bw, y: bh+10, r, vy: - (1+r*0.15), vx:(Math.random()-.5)*0.3, a: Math.random()*0.4+0.2};
+  }
+  for(let i=0;i<80;i++) particles.push(spawnBubble());
+  (function loop(){
+    ctxB.clearRect(0,0,bw,bh);
+    for(const p of particles){
+      p.x += p.vx; p.y += p.vy; if(p.y < -20) Object.assign(p, spawnBubble(), {y: bh+20});
+      ctxB.beginPath(); ctxB.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctxB.fillStyle = `rgba(255,255,255,${p.a})`; ctxB.fill();
+    }
+    requestAnimationFrame(loop);
+  })();
+
+  /* =====================================================
+     QUIZ LOGIC
+     ===================================================== */
+  const QUESTIONS = [
+    {q:"Combien d'années certaines tortues peuvent-elles vivre ?", choices:["Jusqu'à 30 ans","Jusqu'à 60 ans","Plus de 100 ans"], answer:2},
+    {q:"Qu'utilisent les tortues marines pour s'orienter ?", choices:["Les étoiles","Le champ magnétique terrestre","Le bruit des vagues"], answer:1},
+    {q:"Où les femelles vont-elles pondre ?", choices:["Sur la plage la plus proche","Sur leur plage de naissance","Au hasard"], answer:1},
+    {q:"La carapace d'une tortue est…", choices:["Une armure amovible","Une partie du squelette","Du cartilage"], answer:1},
+    {q:"Quel geste aide les tortues ?", choices:["Plus de plastique","Réduire les déchets","Conduire plus vite"], answer:1}
+  ];
+  const quizWrap = $('#quizWrap');
+  const scoreEl = $('#score');
+  const totalEl = $('#total');
+  const retryBtn = $('#retry');
+  const shuffleBtn = $('#shuffle');
+  let score = 0;
+  function renderQuiz(){
+    quizWrap.innerHTML = '';
+    score = 0; scoreEl.textContent = '0'; totalEl.textContent = QUESTIONS.length;
+    QUESTIONS.forEach((item, idx)=>{
+      const q = document.createElement('div'); q.className = 'q';
+      q.innerHTML = `<div class="qtext"><strong>Q${idx+1}.</strong> ${item.q}</div>`;
+      const choices = document.createElement('div'); choices.className = 'choices';
+      item.choices.forEach((c, i)=>{
+        const btn = document.createElement('button'); btn.className='btn'; btn.textContent = c;
+        btn.addEventListener('click', ()=>{
+          if(btn.dataset.locked) return;
+          $$('.choices button', q).forEach(b=>{b.dataset.locked=true; b.classList.add('secondary')});
+          if(i===item.answer){ btn.style.outline='2px solid var(--primary)'; score++; scoreEl.textContent = score; confetti(btn); }
+          else { btn.style.outline='2px solid var(--danger)'; }
+        });
+        choices.appendChild(btn);
+      });
+      q.appendChild(choices); quizWrap.appendChild(q);
+    });
+  }
+  function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } }
+  retryBtn.addEventListener('click', renderQuiz);
+  shuffleBtn.addEventListener('click', ()=>{ shuffle(QUESTIONS); renderQuiz(); });
+  renderQuiz();
+
+  /* Simple confetti burst */
+  function confetti(target){
+    const rect = target.getBoundingClientRect();
+    const n = 18; const particles = [];
+    for(let i=0;i<n;i++){
+      const s = document.createElement('span');
+      s.style.position='fixed'; s.style.left=(rect.left+rect.width/2)+'px'; s.style.top=(rect.top)+'px';
+      s.style.width=s.style.height = (6+Math.random()*6)+'px';
+      s.style.background = i%2? 'var(--primary)': 'var(--accent)';
+      s.style.borderRadius='2px'; s.style.transform=`translate(-50%,-50%) rotate(${Math.random()*180}deg)`;
+      s.style.pointerEvents='none'; s.style.zIndex=9999; s.style.boxShadow='var(--shadow)';
+      document.body.appendChild(s);
+      const ang = Math.random()*Math.PI*2; const sp= 2+Math.random()*4; const grav = 0.15;
+      particles.push({el:s, x:rect.left+rect.width/2, y:rect.top, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp, grav});
+    }
+    const t0 = performance.now();
+    function anim(now){
+      const dt = (now - t0)/16;
+      for(const p of particles){ p.vy += p.grav; p.x += p.vx; p.y += p.vy; p.el.style.left=p.x+'px'; p.el.style.top=p.y+'px'; p.el.style.opacity = Math.max(0, 1-(now-t0)/1000); }
+      if(now - t0 < 1100) requestAnimationFrame(anim); else particles.forEach(p=>p.el.remove());
+    }
+    requestAnimationFrame(anim);
+  }
+
+  /* =====================================================
+     MINI-JEU: TORTUE vs PLASTIQUE
+     ===================================================== */
+  const canvas = $('#gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const startBtn = $('#startGame');
+  const timeEl = $('#time');
+  const gscoreEl = $('#gscore');
+  let game, keys={left:false,right:false};
+
+  document.addEventListener('keydown', e=>{ if(e.key==='ArrowLeft') keys.left=true; if(e.key==='ArrowRight') keys.right=true; });
+  document.addEventListener('keyup', e=>{ if(e.key==='ArrowLeft') keys.left=false; if(e.key==='ArrowRight') keys.right=false; });
+
+  function startGame(){
+    game = {
+      running:true, t0: performance.now(), last: performance.now(),
+      turtle: {x: canvas.width/2, y: canvas.height*0.8, r: 22, vx:0},
+      trash: [],
+      score:0,
+    };
+    gscoreEl.textContent = '0'; timeEl.textContent = '0.0';
+    spawnTrash(24);
+    requestAnimationFrame(loopGame);
+  }
+  startBtn.addEventListener('click', startGame);
+
+  function spawnTrash(n){
+    const shapes = ['bag','bottle','ring'];
+    for(let i=0;i<n;i++){
+      const s = shapes[Math.floor(Math.random()*shapes.length)];
+      game.trash.push({
+        x: Math.random()*canvas.width, y: -Math.random()*canvas.height,
+        vx: (Math.random()-.5)*0.4, vy: 0.8+Math.random()*1.2,
+        s, r: 14 + Math.random()*10
+      });
+    }
+  }
+
+  function drawTurtle(t){
+    // body
+    ctx.save(); ctx.translate(t.x, t.y);
+    ctx.beginPath(); ctx.ellipse(0,0,36,26,0,0,Math.PI*2); ctx.fillStyle = '#20d5a8'; ctx.fill();
+    // shell
+    ctx.beginPath(); ctx.ellipse(0,0,26,18,0,0,Math.PI*2); const g = ctx.createLinearGradient(-26,0,26,0); g.addColorStop(0,'#16c79a'); g.addColorStop(1,'#69a7ff'); ctx.fillStyle = g; ctx.fill();
+    // head
+    ctx.beginPath(); ctx.arc(-42,0,12,0,Math.PI*2); ctx.fillStyle='#16c79a'; ctx.fill();
+    ctx.beginPath(); ctx.arc(-46,-2,3,0,Math.PI*2); ctx.fillStyle='#08131f'; ctx.fill();
+    // flippers
+    ctx.fillStyle='#20d5a8';
+    ctx.beginPath(); ctx.ellipse(10,-16,16,8, -0.3,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(10,16,16,8, 0.3,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawTrash(o){
+    ctx.save(); ctx.translate(o.x, o.y); ctx.rotate(Math.sin(o.y*0.01)*0.2);
+    ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 2; ctx.fillStyle='rgba(255,255,255,.15)';
+    if(o.s==='bag'){
+      ctx.beginPath(); ctx.roundRect(-10,-14,20,28,4); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(-6,-16,4,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.arc(6,-16,4,0,Math.PI*2); ctx.stroke();
+    } else if(o.s==='bottle'){
+      ctx.beginPath(); ctx.moveTo(-6,-16); ctx.lineTo(6,-16); ctx.lineTo(8,6); ctx.quadraticCurveTo(0,14,-8,6); ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else {
+      // ring (anneaux)
+      ctx.beginPath(); ctx.arc(0,0, o.r*0.6, 0, Math.PI*2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function loopGame(now){
+    if(!game || !game.running) return;
+    const dt = (now - game.last)/16; game.last = now;
+    // update
+    const t = game.turtle;
+    t.vx += (keys.left?-0.6:0) + (keys.right?0.6:0); t.vx *= 0.94; t.x += t.vx; t.x = clamp(t.x, 30, canvas.width-30);
+    for(const o of game.trash){ o.x += o.vx*dt; o.y += o.vy*dt; if(o.y>canvas.height+20){ o.y = -20; o.x = Math.random()*canvas.width; o.vy = 0.8+Math.random()*1.2; game.score++; gscoreEl.textContent = game.score; }}
+    // collide
+    for(const o of game.trash){ const dx=o.x-t.x, dy=o.y-t.y; const rr=(o.r||16)+t.r; if(dx*dx+dy*dy < rr*rr){ game.running=false; shake(); break; }}
+
+    // draw
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    // background caustics
+    for(let y=0;y<canvas.height;y+=40){ ctx.globalAlpha = .06 + .03*Math.sin((now*0.001)+(y*0.1)); ctx.fillStyle='#fff'; ctx.fillRect(0,y,canvas.width,20); }
+    ctx.globalAlpha = 1;
+    // seabed
+    ctx.fillStyle = 'rgba(255,255,255,.05)'; ctx.fillRect(0,canvas.height-40,canvas.width,40);
+    // draw objects
+    drawTurtle(t);
+    for(const o of game.trash) drawTrash(o);
+
+    // time
+    timeEl.textContent = ((now - game.t0)/1000).toFixed(1);
+
+    if(game.running) requestAnimationFrame(loopGame);
+  }
+  function shake(){
+    const el = $('#gameWrap'); el.style.transition='transform .1s'; let c=0;
+    const i = setInterval(()=>{ el.style.transform = `translate(${(Math.random()-0.5)*8}px, ${(Math.random()-0.5)*8}px)`; if(++c>8){ clearInterval(i); el.style.transform=''; }
+    }, 30);
+  }
+
+  /* Polyfill for roundRect on older browsers */
+  if(!CanvasRenderingContext2D.prototype.roundRect){
+    CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+      const rr = Math.min(r, w/2, h/2); this.beginPath(); this.moveTo(x+rr,y); this.arcTo(x+w,y,x+w,y+h,rr); this.arcTo(x+w,y+h,x,y+h,rr); this.arcTo(x,y+h,x,y,rr); this.arcTo(x,y,x+w,y,rr); this.closePath(); return this; };
+  }
+
+  /* Accessibility: allow WASD keys */
+  document.addEventListener('keydown', e=>{ if(['a','A'].includes(e.key)) keys.left=true; if(['d','D'].includes(e.key)) keys.right=true; });
+  document.addEventListener('keyup', e=>{ if(['a','A'].includes(e.key)) keys.left=false; if(['d','D'].includes(e.key)) keys.right=false; });
+  </script>
+</body>
+</html>
